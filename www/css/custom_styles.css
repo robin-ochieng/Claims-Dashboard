@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@400;700&display=swap');
+/* Splash Screen Style */
+#splashScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000; 
+}
+.fadeOut {
+  animation: fadeOutAnimation 0.5s;
+  animation-fill-mode: forwards; 
+}
+
+@keyframes fadeOutAnimation {
+  from { opacity: 1; }
+  to { opacity: 0; visibility: hidden; }
+}
+
+.right-logo {
+  margin-left: auto;  
+}
+
+.navbar-brand img {
+  height: 5px; 
+  width: 5px; 
+  vertical-align: middle;
+}
+
+
+
+/* CSS Style */
+/* Aligns the action button to the right */
+.header-left {
+  display: flex;
+  align-items: center; 
+  flex-grow: 1; 
+  color: #0d6efd
+}
+
+.dashboard-header {
+  position: relative;
+}
+
+.control-bar {
+  position: absolute;
+  right: 0; 
+  top: 50%; 
+  transform: translateY(-50%);
+}
+
+.control-button {
+  margin-right: 10px; 
+  border: 1px solid #0d6efd;
+  font-size: 13px;
+  color: #0d6efd;
+}
+
+/* Target the menu item text in the sidebar, I need the background of the selector to be a gray color */
+.nav-sidebar .nav-item > .nav-link > p {
+  font-size: 12px !important;
+  font-weight: bold !important;
+}
+
+/* Make the active tab have a gray background and black text */
+.nav-sidebar .nav-item > .nav-link.active {
+  background-color: #979595 !important; /* or another shade of gray */
+  color: #FFF !important;
+  border-radius: 8px;
+  /* border-left: 3px solid #6c757d; */
+}
+
+/* Make the hover effect have a gray background and white text */
+.nav-sidebar .nav-item > .nav-link:hover {
+  background-color: #888686 !important; /* or another shade of gray */
+  color: #FFF !important;
+  border-radius: 8px;
+  /* border-left: 3px solid #6c757d; */
+}
+
+
+/* Inactive tab styling */
+.nav-tabs .nav-link {
+  background-color: #f8f8f8 !important;
+  color: #333333 !important;
+  border: 1px solid #ddd !important;
+  margin-right: 2px;
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: #e6e6e6 !important;
+  color: #000000 !important;
+}
+
+/* Active (selected) tab styling */
+.nav-tabs .nav-link.active {
+  background-color: #d2cece !important;
+  color: #4f4e4e !important; 
+  border: 1px solid #ddd !important;
+  /* font-weight: bold !important; */
+  /*box-shadow: 0px 4px 6px rgba(0,0,0,0.3) !important;*/
+}
+
+.value-box-row {
+  margin-bottom: 20px !important;
+}
+
+/* Change the background color of the main header */
+.main-header {
+  background-color: #ffffff !important;
+}
+
+/* Optional: change the text color if needed */
+.main-header .logo, .main-header .navbar .nav > li > a {
+  color: #ffffff !important;
+}
+
+/* Setting the font-family for the entire body and relevant components */
+body, .btn, .input, .selectize-input, .navbar, .sidebar, 
+.content-wrapper, .main-sidebar, .left-side, .main-footer, .control-sidebar, .right-side,
+h1, h2, h3, h4, h5, h6, .shiny-plot-output, .dataTable thead th {
+  font-family: 'Mulish'!important;
+}
+
+/* Style for active menu item */
+body .main-sidebar .sidebar .sidebar-menu li.active > a {
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+
+/* Hover effects for non-active menu items */
+body .main-sidebar .sidebar .sidebar-menu li a:hover {
+  background-color: #f78d85 !important;
+  color: white !important;
+}
+
+/* Custom styles for bs4Cards in controlbar to ensure max-width */
+.bs4-card-custom {
+  max-width: 100%;
+} 
+
+/* Set the background color of the sidebar */
+.main-sidebar {
+  background-color: #f4f2ee !important;  /* Apply the desired color */
+  background-color: #fff !important;  /* Apply the desired color */
+  box-shadow: none !important;
+
+
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  display: flex; 
+  flex-direction: column;
+  gap: 10px;    
+  padding: 10px;
+  align-items: center;
+}
+
+.jubilee-logo {
+  height: 40px;
+}
+
+.sidebar-footer img {
+  height: 40px;
+}
+
+/* Attempt to universally select and style the toggle button and any child elements */
+.main-header .navbar .sidebar-toggle, 
+.main-header .navbar .sidebar-toggle *, 
+.main-header .navbar .sidebar-toggle svg {
+    color: white !important;  /* Targets font icons and text */
+    fill: white !important;  /* Targets SVG icons specifically */
+}
+
+/* Sidebar Items ----------------------------------------------------------------------------------*/
+.menu-container {
+  display: block; /* Align items to the start of the container */
+  position: fixed; /* Ensure the container is positioned correctly */    
+  top: 200px;  /* Aligns to the top of the viewport */
+  left: 0; 
+  width: 250px; /* Match the width of the sidebar-footer */
+  padding: 10px 5px; /* Add padding to give some space around the title */
+  background-color: #fff; /* Light background color to distinguish the title area */
+  border-radius: 8px; /* Optional: Add rounded corners for a modern look */
+  font-family: 'Mulish';
+  z-index: 1050;
+}
+
+/* Hide the .menu-container on smaller screens */
+@media (max-width: 768px) {
+  .hamburger-icon {
+      display: block; /* Show icon */
+  }
+
+  .menu-container {
+      display: none; /* This will hide the menu-container on screens smaller than 768px */
+  }
+}
