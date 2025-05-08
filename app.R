@@ -29,12 +29,21 @@ sales_data_renewals <- read_excel("./data/Sales Data Renewal Business.xlsx",
 # Load Health Business Data 
 sales_data_health <- read_excel("./data/Sales Data Health.xlsx", 
                                 sheet = "2024 Data", col_types = c("date",  "text", "text", "text", "numeric", "text", "text", "text", "text", "text", "numeric", "text"))
+
+# Load Premiums Data 
+premium_data <- read_excel("./data/Selected_Premium_Data.xlsx", col_types = c("text", "text", "text", "date", "date", "text", "numeric", "numeric", "numeric", "numeric",  "numeric", "numeric", "numeric",  "numeric", "text", "text", "text", "text", "text", "text", "text")) %>%
+  mutate(
+    Year = format(POLICY_FROM_DATE, "%Y"),
+    Month = format(POLICY_FROM_DATE, "%B"),
+    Quarter = paste0("Q", lubridate::quarter(POLICY_FROM_DATE))
+  )
+
 # Source custom modules
 source("modules/customValueBox.R")
 
 # Source New Business module scripts
 source("modules/NewDataTableModule.R", local = TRUE)
-source("modules/NewSalesDashboardModule.R", local = TRUE)
+source("modules/PremiumsDashboardModule.R", local = TRUE)
 
 # Source Renewal Business module scripts
 source("modules/RenewalDataTableModule.R", local = TRUE)
@@ -66,29 +75,22 @@ ui <- dashboardPage(
   freshTheme = my_theme,
   dashboardHeader(
     title = dashboardBrand(
-      title = HTML("<div class='header-left'><strong style='font-weight: bold;'>Claims Dashboard</strong></div>"),
+      title = HTML("<div class='header-left'><strong style='font-weight: bold;'>Underwriting & Claims Dashboard</strong></div>"),
       color = "white",
       href = "https://vehicle.co.ke/"
     ),
     controlbarIcon = NULL,
     status = "white",
     sidebarIcon = NULL,
-    fixed = TRUE,
-    tags$div(class = "control-bar", actionButton("toggleControlbar", "Input Controls", class = "btn btn-primary control-button"))
+    fixed = TRUE
   ),
   sidebar = dashboardSidebar(
     skin = "light",
     tags$div(
       class = "menu-container",
     sidebarMenu(
-      menuItem("New Business", tabName = "dashboard", icon = icon("plus-square")),
-      menuItem("Renewals", tabName = "dashboard_renewals", icon = icon("sync")),
-      menuItem("Medical", tabName = "dashboard_medical", icon = icon("hospital-symbol")),
-      menuItem("Data", icon = icon("database"),
-        menuSubItem("New Business", tabName = "data_table_new_business"),
-        menuSubItem("Renewal Business", tabName = "data_table_renewal_business"),
-        menuSubItem("Medical Business", tabName = "data_table_medical_business")
-      )
+      menuItem("Premiums", tabName = "dashboard_premiums", icon = icon("sack-dollar")),
+      menuItem("Claims", tabName = "dashboard_claims", icon = icon("file-shield"))
     )),
     div(class = "sidebar-footer",
         img(src = "images/jubilee.png", class = "jubilee-logo"),
@@ -142,7 +144,7 @@ ui <- dashboardPage(
       tags$link(rel = "shortcut icon", href = "favicon/kenbright.ico", type = "image/x-icon")
     ),
     tabItems(
-      tabItem(tabName = "dashboard", salesDashboardUI("sales_dashboard")),
+      tabItem(tabName = "dashboard_premiums", premiumsDashboardUI("premiums_dashboard")),
       tabItem(tabName = "dashboard_renewals", RenewalsalesDashboardUI("sales_dashboard_renewal")),
       tabItem(tabName = "dashboard_medical", MedicalsalesDashboardUI("sales_dashboard_medical")),
       tabItem(tabName = "data_table_new_business", dataTableUI("data_table")),
@@ -152,7 +154,7 @@ ui <- dashboardPage(
   ),
   footer = bs4DashFooter(
     div(style = "background-color: #ffffff; color: #000000; text-align: center; padding: 6px; font-size: 10px", 
-        "© 2024 Sales Report | Powered by Tech and Research Department - Kenbright")
+        "© 2025 Claims Dashboard. All rights reserved.")
   )
 )
 
@@ -162,49 +164,19 @@ server <- function(input, output, session) {
   observeEvent(input$toggleControlbar, {
     updateBoxSidebar("dashboardControlbar")
   })
-  
-#1. New Business -----------------------------------------------------------------------------------
-  observe({
-    # Ensure Month is two digits for date parsing
-    sales_data <- sales_data %>%
-      mutate(
-        Month = as.character(Month),
-        Month = trimws(Month),
-        Year = as.numeric(as.character(Year)),
-        Quarter = as.character(Quarter))
-    
-  # Set choices for month, quarter, and year with "All" as default option
-  month_choices <- c("All" = "All", unique(sales_data$Month[!is.na(sales_data$Month)]))
-  quarter_choices <- c("All" = "All", unique(sales_data$Quarter[!is.na(sales_data$Quarter)]))
-  year_choices <- c("All" = "All", unique(sales_data$Year[!is.na(sales_data$Year)]))
-  
-  # Update select input options in the UI
-  updateSelectInput(session, "new_business_month", choices = month_choices, selected = "All")
-  updateSelectInput(session, "new_business_quarter", choices = quarter_choices, selected = "All")
-  updateSelectInput(session, "new_business_year", choices = year_choices, selected = "All")
-})
 
-# Reactive expression to filter the data based on selected month, quarter, and year
-filtered_data__new_business <- reactive({
-  req(sales_data) 
-  # Apply filters based on input values
-  data <- sales_data
-  if (input$new_business_year != "All") {
-    data <- data %>% filter(Year == as.numeric(input$new_business_year))
-  }
-  if (input$new_business_month != "All") {
-    data <- data %>% filter(Month == input$new_business_month)
-  }
-  if (input$new_business_quarter != "All") {
-    data <- data %>% filter(Quarter == input$new_business_quarter)
-  }
+
+filtered_premium_data <- reactive({
+  req(premium_data)
+  data <- premium_data 
   data
 })
 
 
-#New Business Server Modules
-  salesDashboardServer("sales_dashboard", filtered_data__new_business, reactive({ input$new_business_month }))
-  dataTableServer("data_table", filtered_data__new_business)
+
+  #Premium Dashboard Server Modules
+  premiumsDashboardServer("premiums_dashboard", data = filtered_premium_data)#, filtered_data__new_business)
+  # dataTableServer("data_table", filtered_data__new_business)
 
 #2. Renewal Business -----------------------------------------------------------------------------------
 observe({
