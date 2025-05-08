@@ -39,6 +39,7 @@
 .header-left {
   display: flex;
   align-items: center; 
+  font-size: 14.5px;
   flex-grow: 1; 
   color: #0d6efd
 }
@@ -69,7 +70,7 @@
 
 /* Make the active tab have a gray background and black text */
 .nav-sidebar .nav-item > .nav-link.active {
-  background-color: #979595 !important; /* or another shade of gray */
+  background-color: #1A73E8 !important; /* or another shade of gray */
   color: #FFF !important;
   border-radius: 8px;
   /* border-left: 3px solid #6c757d; */
@@ -77,7 +78,7 @@
 
 /* Make the hover effect have a gray background and white text */
 .nav-sidebar .nav-item > .nav-link:hover {
-  background-color: #888686 !important; /* or another shade of gray */
+  background-color: #E3F2FD !important; /* or another shade of gray */
   color: #FFF !important;
   border-radius: 8px;
   /* border-left: 3px solid #6c757d; */
@@ -93,7 +94,7 @@
 }
 
 .nav-tabs .nav-link:hover {
-  background-color: #e6e6e6 !important;
+  background-color: #E3F2FD !important;
   color: #000000 !important;
 }
 
@@ -183,7 +184,7 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
 .menu-container {
   display: block; /* Align items to the start of the container */
   position: fixed; /* Ensure the container is positioned correctly */    
-  top: 200px;  /* Aligns to the top of the viewport */
+  top: 250px;  /* Aligns to the top of the viewport */
   left: 0; 
   width: 250px; /* Match the width of the sidebar-footer */
   padding: 10px 5px; /* Add padding to give some space around the title */
@@ -193,6 +194,75 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
   z-index: 1050;
 }
 
+/* Container for the full filter block */
+.filters-section {
+  background-color: #f9f9fb;         /* Light neutral background */
+  border: 1px solid #e1e4e8;         /* Subtle border */
+  border-radius: 8px;                /* Rounded corners */
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Title styling */
+.filters-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #2c3e50;                    /* Dark neutral for titles */
+}
+
+/* Flex container for filter items */
+.premium-filters-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;                   /* Stack on smaller screens */
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Individual filter item */
+.filter-item {
+  min-width: 200px;
+  flex: 1 1 200px;                   /* Responsive: shrink/grow as needed */
+}
+
+/* Optional: style selectInput controls globally */
+.selectize-control.single .selectize-input {
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  background-color: #fff;
+}
+
+.selectize-dropdown-content > div:hover {
+  background-color: #f1f1f1;
+}
+
+
+.custom-value-box {
+  padding: 20px;
+  border: 2px solid;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+/* Titles and values */
+.custom-value-title {
+  font-size: 20px;
+  margin: 0 0 10px 0;
+}
+
+.custom-value-value {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+
 /* Hide the .menu-container on smaller screens */
 @media (max-width: 768px) {
   .hamburger-icon {
@@ -201,5 +271,17 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
 
   .menu-container {
       display: none; /* This will hide the menu-container on screens smaller than 768px */
+  }
+
+  .custom-value-box {
+    padding: 12px;
+  }
+
+  .custom-value-title {
+    font-size: 16px;
+  }
+
+  .custom-value-value {
+    font-size: 14px;
   }
 }
