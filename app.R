@@ -38,6 +38,8 @@ premium_data <- read_excel("./data/Selected_Premium_Data.xlsx", col_types = c("t
     Quarter = paste0("Q", lubridate::quarter(POLICY_FROM_DATE))
   )
 
+claims_data <- read_excel("C:/Users/Robin Ochieng/OneDrive - Kenbright/Attachments/projects/2025/May/Jubilee Claims Dashboard/data/Selected_Claims_Data.xlsx", col_types = c("text", "text", "date", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "date"))
+
 # Source custom modules
 source("modules/customValueBox.R")
 
