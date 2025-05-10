@@ -26,13 +26,13 @@ premiumsDashboardUI <- function(id) {
           div(
             class = "premium-filters-container",
             div(class = "filter-item",
-                selectInput(ns("premium_year"), "Year", choices = NULL, selected = "All")
+                selectInput(ns("premium_year"), "Year", choices = NULL, selected = "Select Year")
             ),
             div(class = "filter-item",
-                selectInput(ns("premium_quarter"), "Quarter", choices = NULL, selected = "All")
+                selectInput(ns("premium_quarter"), "Quarter", choices = NULL, selected = "Select Quarter")
             ),
             div(class = "filter-item",
-                selectInput(ns("premium_month"), "Month", choices = NULL, selected = "All")
+                selectInput(ns("premium_month"), "Month", choices = NULL, selected = "Select Month")
             )
           )
         )
@@ -80,29 +80,29 @@ premiumsDashboardServer <- function(id, data) {
     observe({
       req(data())
       updateSelectInput(session, "premium_year",
-                        choices = c("All", sort(unique(data()$Year))),
-                        selected = "All")
+                        choices = c("Select Year", sort(unique(data()$Year))),
+                        selected = "Select Year")
       quarter_order <- c("Q1", "Q2", "Q3", "Q4")
       available_quarters <- intersect(quarter_order, unique(data()$Quarter))
       updateSelectInput(session, "premium_quarter",
-                        choices = c("All", available_quarters),
-                        selected = "All")
+                        choices = c("Select Quarter", available_quarters),
+                        selected = "Select Quarter")
       month_order <- month.name
       available_months <- intersect(month_order, unique(data()$Month))
       updateSelectInput(session, "premium_month",
-                        choices = c("All", available_months),
-                        selected = "All")
+                        choices = c("Select Month", available_months),
+                        selected = "Select Month")
     })
 
     filtered_data <- reactive({
       df <- data()
-      if (input$premium_year != "All") {
+      if (input$premium_year != "Select Year") {
         df <- df %>% filter(Year == input$premium_year)
       }
-      if (input$premium_quarter != "All") {
+      if (input$premium_quarter != "Select Quarter") {
         df <- df %>% filter(Quarter == input$premium_quarter)
       }
-      if (input$premium_month != "All") {
+      if (input$premium_month != "Select Month") {
         df <- df %>% filter(Month == input$premium_month)
       }
       df
@@ -200,14 +200,16 @@ premiumsDashboardServer <- function(id, data) {
         summarise(TotalPremium = sum(BASE_PREMIUM, na.rm = TRUE)) %>%
         mutate(TotalPremiumMillions = TotalPremium / 1e6) %>%
         arrange(desc(TotalPremiumMillions))
-      
+        if (nrow(data) == 0) return(NULL)
+
+      max_val <- max(data$TotalPremiumMillions, na.rm = TRUE)      
       cat_order <- factor(data$CUSTOMER_CATEGORY, levels = rev(data$CUSTOMER_CATEGORY))
 
       ggplot(data, aes(x = cat_order, y = TotalPremiumMillions)) +
-        geom_segment(aes(xend = cat_order, yend = 0), color = "#0d6efd", size = 1) +
+        geom_segment(aes(xend = cat_order, yend = 0), color = "#0d6efd", linewidth = 1) +
         geom_point(color = "#198754", size = 3) +
         geom_text(aes(label = paste0(comma(TotalPremiumMillions, accuracy = 0.01), " M"),
-                      y = TotalPremiumMillions + 0.02 * max(TotalPremiumMillions)),
+                      y = TotalPremiumMillions + 0.02 * max_val),
                   hjust = -0.05, vjust = 0.5, color = "black", size = 3) +
         coord_flip(clip = "off") +
         theme_minimal() +
@@ -217,8 +219,8 @@ premiumsDashboardServer <- function(id, data) {
           plot.margin = margin(t = 10, r = 50, b = 10, l = 10, unit = "pt"), 
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          panel.grid.major.x = element_line(color = "lightgrey", size = 0.5),
-          panel.grid.minor.x = element_line(color = "lightgrey", size = 0.25),
+          panel.grid.major.x = element_line(color = "lightgrey", linewidth = 0.5),
+          panel.grid.minor.x = element_line(color = "lightgrey", linewidth = 0.25),
           axis.title.x = element_text(),
           axis.title.y = element_text(),
           axis.text.y = element_text(color = "black"),
@@ -240,11 +242,14 @@ premiumsDashboardServer <- function(id, data) {
       
       cat_order <- factor(data$CUSTOMER_CATEGORY, levels = rev(data$CUSTOMER_CATEGORY))
 
+      if (nrow(data) == 0) return(NULL)
+      max_n <- max(data$n, na.rm = TRUE)
       ggplot(data, aes(x = cat_order, y = n)) +
-        geom_segment(aes(xend = cat_order, yend = 0), color = "#6c5ce7", size = 1) +
+        geom_segment(aes(xend = cat_order, yend = 0), color = "#6c5ce7", linewidth = 1) +
         geom_point(color = "#00b894", size = 3) +
+
         geom_text(aes(label = comma(n),
-                      y = n + 0.02 * max(n)),
+                      y = n + 0.02 * max_n),
                   hjust = -0.05, vjust = 0.5, color = "black", size = 3) +
         coord_flip(clip = "off") +
         theme_minimal() +
@@ -253,8 +258,8 @@ premiumsDashboardServer <- function(id, data) {
           legend.position = "none",
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          panel.grid.major.x = element_line(color = "lightgrey", size = 0.5),
-          panel.grid.minor.x = element_line(color = "lightgrey", size = 0.25),
+          panel.grid.major.x = element_line(color = "lightgrey", linewidth = 0.5),
+          panel.grid.minor.x = element_line(color = "lightgrey", linewidth = 0.25),
           axis.title.x = element_text(),
           axis.title.y = element_text(),
           axis.text.y = element_text(color = "black"),
