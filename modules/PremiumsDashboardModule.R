@@ -18,23 +18,14 @@ premiumsDashboardUI <- function(id) {
       )
     ), 
     fluidRow(
-      column(
-        12,
-        tags$div(
-          class = "filters-section",
-          tags$h5("Filter by Policy Inception Period", class = "filters-title"),  # Title line
-          div(
-            class = "premium-filters-container",
-            div(class = "filter-item",
-                selectInput(ns("premium_year"), "Year", choices = NULL, selected = "Select Year")
-            ),
-            div(class = "filter-item",
-                selectInput(ns("premium_quarter"), "Quarter", choices = NULL, selected = "Select Quarter")
-            ),
-            div(class = "filter-item",
-                selectInput(ns("premium_month"), "Month", choices = NULL, selected = "Select Month")
+      column(12,
+        div(class = "filters-section",
+            div(class = "filters-header", h5("Filter by Policy Inception Period", class = "filters-title"), actionButton(ns("reset_filters"), "Reset Filters", class = "btn-reset-filters")),
+            div(class = "premium-filters-container",
+                div(class = "filter-item", selectInput(ns("premium_year"), "Year", choices = NULL, selected = "Select Year")),
+                div(class = "filter-item", selectInput(ns("premium_quarter"), "Quarter", choices = NULL, selected = "Select Quarter")),
+                div(class = "filter-item", selectInput(ns("premium_month"), "Month", choices = NULL, selected = "Select Month"))
             )
-          )
         )
       )
     ),
@@ -66,7 +57,35 @@ premiumsDashboardUI <- function(id) {
           status = "white",
           width = 6,
           plotOutput(ns("count_by_customer_category")) %>% withSpinner(type = 6)
-        )
+        ),
+        bs4Card(
+          title = "Premium by Segment (Corporate vs Retail)",
+          solidHeader = TRUE,
+          status = "white",
+          width = 6,
+          plotlyOutput(ns("premium_by_segment")) %>% withSpinner(type = 6)
+        ),
+        bs4Card(
+          title = "Policy Count by Segment (Corporate vs Retail)",
+          solidHeader = TRUE,
+          status = "white",
+          width = 6,
+          plotlyOutput(ns("count_by_segment")) %>% withSpinner(type = 6)
+        ),
+        bs4Card(
+          title = "Premium by Branch",
+          solidHeader = TRUE,
+          status = "white",
+          width = 6,
+          plotlyOutput(ns("premium_by_branch")) %>% withSpinner(type = 6)
+        ),
+        bs4Card(
+          title = "Policy Count by Branch",
+          solidHeader = TRUE,
+          status = "white",
+          width = 6,
+          plotlyOutput(ns("count_by_branch")) %>% withSpinner(type = 6)
+        )        
     )
   )
 }
@@ -108,6 +127,12 @@ premiumsDashboardServer <- function(id, data) {
       df
     })
 
+    observeEvent(input$reset_filters, {
+      updateSelectInput(session, "premium_year", selected = "Select Year")
+      updateSelectInput(session, "premium_quarter", selected = "Select Quarter")
+      updateSelectInput(session, "premium_month", selected = "Select Month")
+    })
+
     # Total Gross Premium
     output$total_gross_premium <- renderUI({
       df <- filtered_data()
@@ -136,10 +161,16 @@ premiumsDashboardServer <- function(id, data) {
         group_by(SUB_CLASSNAME) %>%
         summarise(TotalPremium = sum(BASE_PREMIUM, na.rm = TRUE)) %>%
         arrange(desc(TotalPremium)) %>%
-        mutate(TotalPremiumMillions = TotalPremium / 1e6)
+        mutate(
+          Label = case_when(
+            TotalPremium >= 1e6 ~ paste0(formatC(TotalPremium / 1e6, format = "f", digits = 0, big.mark = ","), " M"),
+            TotalPremium >= 1e3 ~ paste0(formatC(TotalPremium / 1e3, format = "f", digits = 0, big.mark = ","), " K"),
+            TRUE ~ formatC(TotalPremium, format = "f", digits = 0, big.mark = ",")
+          )
+        )
 
       plot_ly(df, x = ~fct_reorder(SUB_CLASSNAME, -TotalPremium), y = ~TotalPremium, type = 'bar',
-              text = ~paste0(formatC(TotalPremiumMillions, format = "f", digits = 0, big.mark = ","), " M"),
+              text = ~Label,
               textfont = list(size = 9, color = "black"),
               textposition = 'outside',
               hoverinfo = 'text',
@@ -168,10 +199,16 @@ premiumsDashboardServer <- function(id, data) {
         filter(!is.na(SUB_CLASSNAME)) %>%
         group_by(SUB_CLASSNAME) %>%
         summarise(PolicyCount = n()) %>%
-        arrange(desc(PolicyCount))
+        arrange(desc(PolicyCount))%>%
+        mutate(
+          Label = case_when(
+            PolicyCount >= 1e3 ~ paste0(formatC(PolicyCount / 1e3, format = "f", digits = 0, big.mark = ","), " K"),
+            TRUE ~ formatC(PolicyCount, format = "d", big.mark = ",")
+          )
+        )
 
       plot_ly(df, x = ~fct_reorder(SUB_CLASSNAME, -PolicyCount), y = ~PolicyCount, type = 'bar',
-              text = ~formatC(PolicyCount, format = "d", big.mark = ","),
+              text = ~Label,
               textposition = 'outside',
               hoverinfo = 'text',
               hovertext = ~paste("Class:", SUB_CLASSNAME, "<br>Policies:", formatC(PolicyCount, format = "d", big.mark = ",")),
@@ -198,7 +235,14 @@ premiumsDashboardServer <- function(id, data) {
         filter(!is.na(CUSTOMER_CATEGORY)) %>%
         group_by(CUSTOMER_CATEGORY) %>%
         summarise(TotalPremium = sum(BASE_PREMIUM, na.rm = TRUE)) %>%
-        mutate(TotalPremiumMillions = TotalPremium / 1e6) %>%
+        mutate(
+          TotalPremiumLabel = case_when(
+            TotalPremium >= 1e6 ~ paste0(formatC(TotalPremium / 1e6, format = "f", digits = 0, big.mark = ","), " M"),
+            TotalPremium >= 1e3 ~ paste0(formatC(TotalPremium / 1e3, format = "f", digits = 0, big.mark = ","), " K"),
+            TRUE ~ formatC(TotalPremium, format = "f", digits = 0, big.mark = ",")
+          ),
+          TotalPremiumMillions = TotalPremium / 1e6  # still used for plotting
+        ) %>%
         arrange(desc(TotalPremiumMillions))
         if (nrow(data) == 0) return(NULL)
 
@@ -208,7 +252,7 @@ premiumsDashboardServer <- function(id, data) {
       ggplot(data, aes(x = cat_order, y = TotalPremiumMillions)) +
         geom_segment(aes(xend = cat_order, yend = 0), color = "#0d6efd", linewidth = 1) +
         geom_point(color = "#198754", size = 3) +
-        geom_text(aes(label = paste0(comma(TotalPremiumMillions, accuracy = 0.01), " M"),
+        geom_text(aes(label = TotalPremiumLabel,
                       y = TotalPremiumMillions + 0.02 * max_val),
                   hjust = -0.05, vjust = 0.5, color = "black", size = 3) +
         coord_flip(clip = "off") +
@@ -238,7 +282,14 @@ premiumsDashboardServer <- function(id, data) {
       data <- filtered_data() %>%
         filter(!is.na(CUSTOMER_CATEGORY)) %>%
         count(CUSTOMER_CATEGORY) %>%
+        mutate(
+          CountLabel = case_when(
+            n >= 1e3 ~ paste0(formatC(n / 1e3, format = "f", digits = 0, big.mark = ","), " K"),
+            TRUE ~ formatC(n, format = "f", digits = 0, big.mark = ",")
+          )
+        )%>%
         arrange(desc(n))
+      
       
       cat_order <- factor(data$CUSTOMER_CATEGORY, levels = rev(data$CUSTOMER_CATEGORY))
 
@@ -248,7 +299,7 @@ premiumsDashboardServer <- function(id, data) {
         geom_segment(aes(xend = cat_order, yend = 0), color = "#6c5ce7", linewidth = 1) +
         geom_point(color = "#00b894", size = 3) +
 
-        geom_text(aes(label = comma(n),
+        geom_text(aes(label = CountLabel,
                       y = n + 0.02 * max_n),
                   hjust = -0.05, vjust = 0.5, color = "black", size = 3) +
         coord_flip(clip = "off") +
@@ -274,6 +325,131 @@ premiumsDashboardServer <- function(id, data) {
         )
     })
 
+    output$premium_by_segment <- renderPlotly({
+      df <- filtered_data() %>%
+        filter(!is.na(CORPORATE_OR_RETAIL)) %>%
+        group_by(CORPORATE_OR_RETAIL) %>%
+        summarise(TotalPremium = sum(BASE_PREMIUM, na.rm = TRUE)) %>%
+        mutate(
+          Label = paste0(CORPORATE_OR_RETAIL, ": ", 
+                        formatC(TotalPremium / 1e6, format = "f", digits = 1, big.mark = ","), " M")
+        )
+
+      plot_ly(
+        df, labels = ~CORPORATE_OR_RETAIL, values = ~TotalPremium, type = "pie", hole = 0.4,
+        textposition = "inside", textinfo = "label+value+percent", insidetextorientation = "tangential",
+        hoverinfo = "text",
+        text = ~Label,
+        marker = list(colors = c("#17a2b8", "#008b8b"))  # Customize if you like
+      ) %>%
+        layout(
+          title = list(text = "Premium by Segment (Corporate vs Retail)", x = 0.01, xanchor = "left", font = list(size = 14)),
+          showlegend = TRUE,
+          font = list(family = "Mulish")
+        )
+    })
+
+    output$count_by_segment <- renderPlotly({
+      df <- filtered_data() %>%
+        filter(!is.na(CORPORATE_OR_RETAIL)) %>%
+        count(CORPORATE_OR_RETAIL) %>%
+        mutate(
+          Label = paste0(CORPORATE_OR_RETAIL, ": ", formatC(n, format = "d", big.mark = ","), " Policies")
+        )
+
+      plot_ly(
+        df, labels = ~CORPORATE_OR_RETAIL, values = ~n, type = "pie", hole = 0.4,
+        textposition = 'inside', textinfo = "label+value+percent", insidetextorientation = "tangential",
+        hoverinfo = "text",
+        text = ~Label,
+        marker = list(colors = c('#003366', '#708090'))  # Optional color scheme
+      ) %>%
+        layout(
+          title = list(text = "Policy Count by Segment (Corporate vs Retail)", x = 0.01, xanchor = "left", font = list(size = 14)),
+          showlegend = TRUE,
+          font = list(family = "Mulish")
+        )
+    })
+
+    output$premium_by_branch <- renderPlotly({
+      df <- filtered_data() %>%
+        filter(!is.na(BRANCH_NAME1)) %>%
+        group_by(BRANCH_NAME1) %>%
+        summarize(TotalPremium = sum(BASE_PREMIUM, na.rm = TRUE)) %>%
+        mutate(
+          ScaledPremium = case_when(
+            TotalPremium >= 1e6 ~ TotalPremium / 1e6,
+            TotalPremium >= 1e3 ~ TotalPremium / 1e3,
+            TRUE ~ TotalPremium
+          ),
+          Unit = case_when(
+            TotalPremium >= 1e6 ~ "M",
+            TotalPremium >= 1e3 ~ "K",
+            TRUE ~ ""
+          ),
+          Label = paste0(formatC(ScaledPremium, format = "f", digits = 0, big.mark = ","), " ", Unit),
+          Branch = fct_reorder(BRANCH_NAME1, TotalPremium)
+        ) %>%
+        arrange(TotalPremium)
+
+      plot_ly(
+        df,
+        x = ~ScaledPremium,
+        y = ~Branch,
+        type = 'bar',
+        orientation = 'h',
+        marker = list(color = '#0d6efd'),
+        text = ~Label,
+        textposition = 'auto',
+        textfont = list(size = 9, color = "#333333"),
+        hoverinfo = 'text',
+        hovertext = ~paste("Branch:", BRANCH_NAME1, "<br>Total Premium:", Label)
+      ) %>%
+        layout(
+          title = list(text = "Premium by Branch", x = 0.01, xanchor = "left", font = list(size = 14)),
+          yaxis = list(title = "", tickfont = list(size = 8, color = "#333333")),
+          xaxis = list(title = "Total Premium", tickfont = list(size = 10, color = "#333333")),
+          font = list(family = "Mulish", color = "#333333"),
+          margin = list(l = 10, r = 80, b = 10, t = 30),
+          plot_bgcolor = "white",
+          paper_bgcolor = "white"
+        )
+    })
+
+    output$count_by_branch <- renderPlotly({
+      df <- filtered_data() %>%
+        filter(!is.na(BRANCH_NAME1)) %>%
+        count(BRANCH_NAME1) %>%
+        mutate(
+          Label = case_when(
+            n >= 1e3 ~ paste0(formatC(n / 1e3, format = "f", digits = 0, big.mark = ","), " K"),
+            TRUE ~ formatC(n, format = "d", big.mark = ",")
+          ),
+          Branch = fct_reorder(BRANCH_NAME1, n)
+        )
+      plot_ly(
+        df,
+        x = ~n,
+        y = ~Branch,
+        type = 'bar',
+        orientation = 'h',
+        marker = list(color = '#EA80FC'),
+        text = ~Label,
+        textposition = 'auto',
+        textfont = list(size = 9, color = "#333333"),
+        hoverinfo = 'text',
+        hovertext = ~paste("Branch:", BRANCH_NAME1, "<br>Policies:", Label)
+      ) %>%
+        layout(
+          title = list(text = "Policy Count by Branch", x = 0.01, xanchor = "left", font = list(size = 14)),
+          yaxis = list(title = "", tickfont = list(size = 8, color = "#333333")),
+          xaxis = list(title = "Policy Count", tickfont = list(size = 10, color = "#333333")),
+          font = list(family = "Mulish", color = "#333333"),
+          margin = list(l = 10, r = 80, b = 10, t = 40),
+          plot_bgcolor = "white",
+          paper_bgcolor = "white"
+        )
+    })
 
 
   })
