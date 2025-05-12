@@ -194,39 +194,67 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
   z-index: 1050;
 }
 
+/* Filters Section ---------------------------------------------------------------------------------- */
+
 /* Container for the full filter block */
 .filters-section {
   background-color: #f9f9fb;         /* Light neutral background */
   border: 1px solid #e1e4e8;         /* Subtle border */
   border-radius: 8px;                /* Rounded corners */
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 16px;
+  margin-bottom: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 /* Title styling */
 .filters-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   color: #2c3e50;                    /* Dark neutral for titles */
 }
 
 /* Flex container for filter items */
 .premium-filters-container {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;                   /* Stack on smaller screens */
+  flex-wrap: wrap;
+  gap: 12px;                  
   align-items: center;
   justify-content: flex-start;
 }
 
 /* Individual filter item */
 .filter-item {
-  min-width: 200px;
-  flex: 1 1 200px;                   /* Responsive: shrink/grow as needed */
+  flex: 1 1 160px;  
+  min-width: 160px;         
 }
 
+/* Reset button */
+.btn-reset-filters {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #61adf9;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reset-filters:hover {
+  background-color: #e2e6ea;
+  border-color: #adb5bd;
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------*/
 /* Optional: style selectInput controls globally */
 .selectize-control.single .selectize-input {
   border: 1px solid #ced4da;
@@ -285,3 +313,17 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
     font-size: 14px;
   }
 }
+
+
+@media (max-width: 600px) {
+  .premium-filters-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-item {
+    width: 100%;
+  }
+}
+
+
