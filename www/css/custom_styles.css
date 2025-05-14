@@ -58,7 +58,8 @@
 .control-button {
   margin-right: 10px; 
   border: 1px solid #0d6efd;
-  font-size: 13px;
+  font-size: 10px;
+  margin-bottom: 20px;
   color: #0d6efd;
 }
 
@@ -290,6 +291,9 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
   margin: 0;
 }
 
+.print-title {
+  display: none;
+}
 
 /* Hide the .menu-container on smaller screens */
 @media (max-width: 768px) {
@@ -330,9 +334,18 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
 
 @media print {
 
+  .print-title {
+    display: block !important;
+    page-break-before: avoid;
+  }
+
   .btn-primary {
     display: none;
   } 
+
+  .no-print {
+    display: none !important;
+  }
 
   .row > .col-sm-6 {
     flex: 0 0 100% !important;
@@ -343,6 +356,15 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
   .card,
   .content {
     page-break-inside: avoid;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .plotly, .plot-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 
   .sidebar,
