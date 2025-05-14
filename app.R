@@ -57,7 +57,7 @@ my_theme <- bs_theme(
 )
 
 ui <- dashboardPage(
-  title = "Claims Dashboard",
+  title = "Underwriting & Claims Dashboard",
   dark = NULL,
   help = NULL,
   fullscreen = FALSE,
@@ -89,6 +89,11 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     tags$head(
+      tags$script(HTML("
+        Shiny.addCustomMessageHandler('printPage', function(message) {
+          window.print();
+        });
+      ")),
       includeCSS("www/css/custom_styles.css"),
       tags$link(rel = "shortcut icon", href = "favicon/kenbright.ico", type = "image/x-icon")
     ),
