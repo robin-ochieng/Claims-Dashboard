@@ -243,7 +243,7 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
   border: 1px solid #ccc;
   padding: 6px 12px;
   border-radius: 10px;
-  border: 1px solid #61adf9;
+  border: 1px solid #555;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -325,5 +325,40 @@ body .main-sidebar .sidebar .sidebar-menu li a:hover {
     width: 100%;
   }
 }
+
+
+
+@media print {
+
+  .btn-primary {
+    display: none;
+  } 
+
+  .row > .col-sm-6 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  .content-wrapper,
+  .card,
+  .content {
+    page-break-inside: avoid;
+  }
+
+  .sidebar,
+  .navbar,
+  .footer,
+  .btn {
+    display: none !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  
+}
+
 
 
