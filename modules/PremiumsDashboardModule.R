@@ -2,7 +2,15 @@
 premiumsDashboardUI <- function(id) {
   ns <- NS(id)
   tagList(
-    actionButton(ns("print_dashboard"), "Print as PDF", icon = icon("print"), class = "btn btn-primary mb-3"),
+    # 📄 Print-Only Report Title and Logo
+    tags$div(
+      class = "print-title",
+      style = "text-align: center; margin-bottom: 20px;",
+      tags$img(src = "images/jubilee.png", style = "height: 60px; margin-bottom: 10px;"),
+      tags$h2("Premium Dashboard Report"),
+      tags$p(format(Sys.Date(), "%B %d, %Y"), style = "font-size: 14px;")
+    ),
+    actionButton(ns("print_dashboard"), "Print as PDF", icon = icon("print"), class = "btn btn-primary control-button"),
     fluidRow(
       class = "value-box-row",
       column(
@@ -20,8 +28,11 @@ premiumsDashboardUI <- function(id) {
     ), 
     fluidRow(
       column(12,
-        div(class = "filters-section",
-            div(class = "filters-header", h5("Filter by Policy Inception Period", class = "filters-title"), actionButton(ns("reset_filters"), "Reset Filters", class = "btn-reset-filters")),
+        div(class = "filters-section no-print",
+            div(class = "filters-header", 
+                h5("Filter by Policy Inception Period", class = "filters-title"), 
+                actionButton(ns("reset_filters"), "Reset Filters", class = "btn-reset-filters")
+              ),
             div(class = "premium-filters-container",
                 div(class = "filter-item", selectInput(ns("premium_year"), "Year", choices = NULL, selected = "Select Year")),
                 div(class = "filter-item", selectInput(ns("premium_quarter"), "Quarter", choices = NULL, selected = "Select Quarter")),
