@@ -2,6 +2,7 @@
 premiumsDashboardUI <- function(id) {
   ns <- NS(id)
   tagList(
+    actionButton(ns("print_dashboard"), "Print as PDF", icon = icon("print"), class = "btn btn-primary mb-3"),
     fluidRow(
       class = "value-box-row",
       column(
@@ -85,7 +86,21 @@ premiumsDashboardUI <- function(id) {
           status = "white",
           width = 6,
           plotlyOutput(ns("count_by_branch")) %>% withSpinner(type = 6)
-        )        
+        ),
+        bs4Card(
+          title = "Premium by Business Type",
+          solidHeader = TRUE,
+          status = "white",
+          width = 6,
+          plotlyOutput(ns("premium_by_business_type")) %>% withSpinner(type = 6)
+        ),
+        bs4Card(
+          title = "Policy Count by Business Type",
+          solidHeader = TRUE,
+          status = "white",
+          width = 6,
+          plotlyOutput(ns("count_by_business_type")) %>% withSpinner(type = 6)
+        )         
     )
   )
 }
@@ -95,6 +110,11 @@ premiumsDashboardUI <- function(id) {
 premiumsDashboardServer <- function(id, data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns  # Namespace function to handle IDs
+
+    observeEvent(input$print_dashboard, {
+      session$sendCustomMessage(type = "printPage", message = list())
+    })
+
 
     observe({
       req(data())
@@ -115,6 +135,7 @@ premiumsDashboardServer <- function(id, data) {
 
     filtered_data <- reactive({
       df <- data()
+      req(input$premium_year, input$premium_quarter, input$premium_month)
       if (input$premium_year != "Select Year") {
         df <- df %>% filter(Year == input$premium_year)
       }
@@ -169,7 +190,10 @@ premiumsDashboardServer <- function(id, data) {
           )
         )
 
-      plot_ly(df, x = ~fct_reorder(SUB_CLASSNAME, -TotalPremium), y = ~TotalPremium, type = 'bar',
+      plot_ly(df, 
+              x = ~fct_reorder(SUB_CLASSNAME, -TotalPremium), 
+              y = ~TotalPremium, 
+              type = 'bar',
               text = ~Label,
               textfont = list(size = 9, color = "black"),
               textposition = 'outside',
@@ -211,6 +235,7 @@ premiumsDashboardServer <- function(id, data) {
               text = ~Label,
               textposition = 'outside',
               hoverinfo = 'text',
+              textfont = list(size = 9, color = "black"),
               hovertext = ~paste("Class:", SUB_CLASSNAME, "<br>Policies:", formatC(PolicyCount, format = "d", big.mark = ",")),
               marker = list(color = '#EA80FC')) %>%
         layout(
@@ -221,7 +246,7 @@ premiumsDashboardServer <- function(id, data) {
             xanchor = "left",
             font = list(size = 14)
           ),
-          margin = list(b = 100), 
+          margin = list(b = 30, t = 20), 
           xaxis = list(title = "Class", tickangle = -45, tickfont = list(size = 10)),
           yaxis = list(title = "Count", tickfont = list(size = 10)),
           font = list(family = "Mulish"),
@@ -264,7 +289,7 @@ premiumsDashboardServer <- function(id, data) {
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.grid.major.x = element_line(color = "lightgrey", linewidth = 0.5),
-          panel.grid.minor.x = element_line(color = "lightgrey", linewidth = 0.25),
+          panel.grid.minor.x = element_blank(),
           axis.title.x = element_text(),
           axis.title.y = element_text(),
           axis.text.y = element_text(color = "black"),
@@ -310,7 +335,7 @@ premiumsDashboardServer <- function(id, data) {
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           panel.grid.major.x = element_line(color = "lightgrey", linewidth = 0.5),
-          panel.grid.minor.x = element_line(color = "lightgrey", linewidth = 0.25),
+          panel.grid.minor.x = element_blank(),
           axis.title.x = element_text(),
           axis.title.y = element_text(),
           axis.text.y = element_text(color = "black"),
@@ -337,15 +362,16 @@ premiumsDashboardServer <- function(id, data) {
 
       plot_ly(
         df, labels = ~CORPORATE_OR_RETAIL, values = ~TotalPremium, type = "pie", hole = 0.4,
-        textposition = "inside", textinfo = "label+value+percent", insidetextorientation = "tangential",
+        textposition = "outside", textinfo = "label+value+percent", insidetextorientation = "tangential",
         hoverinfo = "text",
         text = ~Label,
-        marker = list(colors = c("#17a2b8", "#008b8b"))  # Customize if you like
+        marker = list(colors = c("#4C6EF5", "#5C677D"))  # Customize if you like
       ) %>%
         layout(
           title = list(text = "Premium by Segment (Corporate vs Retail)", x = 0.01, xanchor = "left", font = list(size = 14)),
           showlegend = TRUE,
-          font = list(family = "Mulish")
+          font = list(family = "Mulish"),
+          margin = list(l = 80, r = 50, t = 50, b = 50) 
         )
     })
 
@@ -359,15 +385,20 @@ premiumsDashboardServer <- function(id, data) {
 
       plot_ly(
         df, labels = ~CORPORATE_OR_RETAIL, values = ~n, type = "pie", hole = 0.4,
-        textposition = 'inside', textinfo = "label+value+percent", insidetextorientation = "tangential",
+        textposition = 'outside', textinfo = "label+value+percent", insidetextorientation = "tangential",
         hoverinfo = "text",
         text = ~Label,
-        marker = list(colors = c('#003366', '#708090'))  # Optional color scheme
+        marker = list(colors = c("#87CEFA", "#6495ED"))  # Optional color scheme
       ) %>%
         layout(
-          title = list(text = "Policy Count by Segment (Corporate vs Retail)", x = 0.01, xanchor = "left", font = list(size = 14)),
+          title = list(
+            text = "Policy Count by Segment (Corporate vs Retail)", 
+            x = 0.01, 
+            xanchor = "left", 
+            font = list(size = 14)),
           showlegend = TRUE,
-          font = list(family = "Mulish")
+          font = list(family = "Mulish"),
+          margin = list(l = 80, r = 50, t = 50, b = 50) 
         )
     })
 
@@ -377,28 +408,22 @@ premiumsDashboardServer <- function(id, data) {
         group_by(BRANCH_NAME1) %>%
         summarize(TotalPremium = sum(BASE_PREMIUM, na.rm = TRUE)) %>%
         mutate(
-          ScaledPremium = case_when(
-            TotalPremium >= 1e6 ~ TotalPremium / 1e6,
-            TotalPremium >= 1e3 ~ TotalPremium / 1e3,
-            TRUE ~ TotalPremium
+          Label = case_when(
+            TotalPremium >= 1e6 ~ paste0(formatC(TotalPremium / 1e6, format = "f", digits = 0, big.mark = ","), " M"),
+            TotalPremium >= 1e3 ~ paste0(formatC(TotalPremium / 1e3, format = "f", digits = 0, big.mark = ","), " K"),
+            TRUE ~ formatC(TotalPremium, format = "f", digits = 0, big.mark = ",")
           ),
-          Unit = case_when(
-            TotalPremium >= 1e6 ~ "M",
-            TotalPremium >= 1e3 ~ "K",
-            TRUE ~ ""
-          ),
-          Label = paste0(formatC(ScaledPremium, format = "f", digits = 0, big.mark = ","), " ", Unit),
           Branch = fct_reorder(BRANCH_NAME1, TotalPremium)
-        ) %>%
+        )%>%
         arrange(TotalPremium)
 
       plot_ly(
         df,
-        x = ~ScaledPremium,
+        x = ~TotalPremium,
         y = ~Branch,
         type = 'bar',
         orientation = 'h',
-        marker = list(color = '#0d6efd'),
+        marker = list(color = '#80FCEB'),
         text = ~Label,
         textposition = 'auto',
         textfont = list(size = 9, color = "#333333"),
@@ -445,12 +470,102 @@ premiumsDashboardServer <- function(id, data) {
           yaxis = list(title = "", tickfont = list(size = 8, color = "#333333")),
           xaxis = list(title = "Policy Count", tickfont = list(size = 10, color = "#333333")),
           font = list(family = "Mulish", color = "#333333"),
-          margin = list(l = 10, r = 80, b = 10, t = 40),
+          margin = list(l = 100, r = 10, b = 10, t = 40),
           plot_bgcolor = "white",
           paper_bgcolor = "white"
         )
     })
 
+
+
+
+    output$premium_by_business_type <- renderPlotly({
+      # Load and filter the data
+      data <- filtered_data()
+      
+      # Aggregate sales by cover type and order by descending sales
+      premium_by_business_type <- data %>%
+        group_by(`BUSINESS_TYPE`) %>%
+        summarise(Premium = sum(BASE_PREMIUM, na.rm = TRUE)) %>%
+        ungroup() %>%
+        arrange(desc(Premium))
+      
+      # Calculate total sales and percentage share for each cover type
+      total_premium <- sum(premium_by_business_type$Premium)
+      premium_by_business_type <- premium_by_business_type %>%
+        mutate(Percentage = Premium / total_premium * 100,
+              # Create detailed hover labels showing the cover type, sales figures, and percentage
+              Label = paste0(
+                `BUSINESS_TYPE`, "<br>",
+                "Premium: ", formatC(Premium, format = "f", big.mark = ","), "<br>",
+                formatC(Percentage, format = "f", digits = 2), "%"
+              ))
+      
+      # Set a constant pull value to detach (explode) each slice
+      pull_values <- rep(0.1, nrow(premium_by_business_type))
+      custom_colors <- c("#87CEFA", "#6495ED")
+      # Create an interactive donut chart with on-slice labels (label and percent) and detailed hover text
+      p <- plot_ly(
+        premium_by_business_type,
+        labels = ~`BUSINESS_TYPE`,
+        values = ~Premium,
+        type = 'pie',
+        hole = 0.5,                      # Determines the donut hole size
+        textinfo = 'label+value+percent',      # Show the category labels and percent on the slices
+        insidetextorientation = 'radial',
+        hoverinfo = 'text',              # Use custom hover text
+        hovertext = ~Label,              # Detailed information on hover
+        marker = list(colors = custom_colors[1:nrow(premium_by_business_type)]),
+        pull = pull_values               # Detach each slice slightly
+      ) %>%
+        layout(
+          title = list(text = "Premium by Business Type", x = 0.01, xanchor = "left", font = list(family = "Mulish", size = 14)),
+          showlegend = TRUE,
+          margin = list(l = 100, r = 10, b = 10, t = 40),
+          # Optional: centered annotation inside the donut
+          annotations = list(
+            list(
+              text = "",
+              x = 0.5,
+              y = 0.5,
+              font = list(family = "Mulish", size = 16, color = "#555"),
+              showarrow = FALSE
+            )
+          ),
+          font = list(family = "Mulish")
+        )
+      
+      p
+    })
+
+
+
+    output$count_by_business_type <- renderPlotly({
+      count_by_business_type <- filtered_data() %>%
+        # Filter out rows where Business Category might be NA
+        filter(!is.na(BASE_PREMIUM), !is.na(BUSINESS_TYPE)) %>%
+        # Group data by 'BUSINESS_TYPE' and count occurrences
+        group_by(BUSINESS_TYPE) %>%
+        summarise(Count = n(), .groups = 'drop') %>%
+        # Calculate percentages
+        mutate(percentage = Count / sum(Count) * 100)
+      # Generate color palette
+      num_categories <- nrow(count_by_business_type)
+      colors <- c("#48d1cc", "#00838f") 
+      # Create the donut chart
+      p <- plot_ly(count_by_business_type, labels = ~BUSINESS_TYPE, values = ~Count, type = 'pie', hole = 0.6,
+                  textposition = 'outside',
+                  textinfo = 'label+value+percent',
+                  insidetextorientation = 'tangential',
+                  marker = list(colors = colors),
+                  textfont = list(color = 'black', family = "Mulish", size = 12))
+      # Add title and display the plot
+      p <- p %>% layout(showlegend = TRUE,
+                        title = list(text = "Policy Count by Business Type", x = 0.01, xanchor = "left", font = list(size = 14)),
+                        font = list(family = "Mulish"),
+                        margin = list(l = 110, r = 10, b = 10, t = 40))
+      p
+    })
 
   })
 }
