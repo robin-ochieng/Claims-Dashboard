@@ -18,23 +18,14 @@ claimsDashboardUI <- function(id) {
       )
     ),
     fluidRow(
-      column(
-        12,
-        tags$div(
-          class = "filters-section",
-          tags$h5("Filter by Loss Period", class = "filters-title"),  # Title line
-          div(
-            class = "premium-filters-container",
-            div(class = "filter-item",
-                selectInput(ns("claims_year"), "Year", choices = NULL, selected = "Select Year")
-            ),
-            div(class = "filter-item",
-                selectInput(ns("claims_quarter"), "Quarter", choices = NULL, selected = "Select Quarter")
-            ),
-            div(class = "filter-item",
-                selectInput(ns("claims_month"), "Month", choices = NULL, selected = "Select Month")
+      column(12,
+        div(class = "filters-section",
+            div(class = "filters-header", h5("Filter by Policy Inception Period", class = "filters-title"), actionButton(ns("reset_filters"), "Reset Filters", class = "btn-reset-filters")),
+            div(class = "premium-filters-container",
+                div(class = "filter-item", selectInput(ns("claims_year"), "Year", choices = NULL, selected = "Select Year")),
+                div(class = "filter-item", selectInput(ns("claims_quarter"), "Quarter", choices = NULL, selected = "Select Quarter")),
+                div(class = "filter-item", selectInput(ns("claims_month"), "Month", choices = NULL, selected = "Select Month"))
             )
-          )
         )
       )
     )
@@ -77,6 +68,12 @@ claimsDashboardServer <- function(id, data) {
         df <- df %>% filter(Month == input$claims_month)
       }
       df
+    })
+
+    observeEvent(input$reset_filters, {
+      updateSelectInput(session, "claims_year", selected = "Select Year")
+      updateSelectInput(session, "claims_quarter", selected = "Select Quarter")
+      updateSelectInput(session, "claims_month", selected = "Select Month")
     })
 
     # Total Paid + Outstanding
